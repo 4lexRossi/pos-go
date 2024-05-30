@@ -15,9 +15,9 @@ var (
 )
 
 func main() {
-	fmt.Print("f type is %T", f)
-	fmt.Print("f value is %v", f)
+	fmt.Printf("f type is %T", f)
+	fmt.Printf("f value is %v", f)
 
-	fmt.Print("d type is %T", d)
-	fmt.Print("d value is %v", d)
+	fmt.Printf("d type is %T", d)
+	fmt.Printf("d value is %v", d)
 }
