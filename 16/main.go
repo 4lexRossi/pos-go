@@ -8,6 +8,14 @@ func main() {
 
 	showType(x)
 	showType(y)
+
+	var myVar interface{} = "Alex Rossi"
+
+	println(myVar.(string))
+
+	res, ok := myVar.(int)
+
+	fmt.Printf("res value is %v and ok result is %v", res, ok)
 }
 
 func showType(t interface{}) {
