@@ -5,8 +5,6 @@ import (
 	"net/http"
 )
 
-const a = "hello, world!"
-
 func main() {
 	req, err := http.Get("https://www.google.com")
 	if err != nil {
