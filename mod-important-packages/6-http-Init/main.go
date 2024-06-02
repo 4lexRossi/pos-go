@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -41,17 +41,18 @@ func BuscaCepHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
 	json.NewEncoder(w).Encode(cep)
 }
 
 func BuscaCep(cep string) (*ViaCEP, error) {
-	resp, error := http.Get("https:viacep.com.br/ws/" + cep + "/json/")
+	resp, error := http.Get("https://viacep.com.br/ws/" + cep + "/json/")
 	if error != nil {
 		return nil, error
 	}
 	defer resp.Body.Close()
 
-	body, error := ioutil.ReadAll(resp.Body)
+	body, error := io.ReadAll(resp.Body)
 	if error != nil {
 		return nil, error
 	}
