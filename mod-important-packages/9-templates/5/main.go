@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"os"
+	"strings"
 )
 
 type Course struct {
@@ -18,7 +19,11 @@ func main() {
 		"content.html",
 		"footer.html",
 	}
-	t := template.Must(template.New("content.html").ParseFiles(templates...))
+
+	t := template.New("content.html")
+	t.Funcs(template.FuncMap{"Upper": strings.ToUpper})
+	t = template.Must(t.ParseFiles(templates...))
+
 	err := t.Execute(os.Stdout, Courses{
 		{"GO", 40},
 		{"Java", 50},
