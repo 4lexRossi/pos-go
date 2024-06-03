@@ -1,25 +1,25 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"log"
+	"net/http"
 	"time"
 )
 
 func main() {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
-	defer cancel()
-
-	bookHotel(ctx)
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":8080", nil)
 }
 
-func bookHotel(ctx context.Context) {
+func handler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	log.Println("Request started")
+	defer log.Println("Request finished")
 	select {
-	case <-ctx.Done():
-		fmt.Println("Hotel booking cancelled!")
-		return
 	case <-time.After(5 * time.Second):
-		fmt.Println("Hotel booked!")
+		log.Println("Request successfully")
+		w.Write([]byte("Request successfully"))
+	case <-ctx.Done():
+		log.Println("Resquest cancel by client")
 	}
 }
