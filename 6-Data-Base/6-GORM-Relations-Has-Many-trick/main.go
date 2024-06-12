@@ -8,8 +8,9 @@ import (
 )
 
 type Category struct {
-	ID   int `gorm:"primaryKey"`
-	Name string
+	ID       int `gorm:"primaryKey"`
+	Name     string
+	Products []Product
 }
 
 type Product struct {
@@ -47,15 +48,22 @@ func main() {
 		CategoryID: category.ID,
 	})
 
+	//create serial number
 	db.Create(&SerialNumber{
 		Number:    "1234",
 		ProductID: 1,
 	})
 
-	//search belongs
-	var products []Product
-	db.Preload("Category").Preload("SerialNumber").Find(&products)
-	for _, product := range products {
-		fmt.Println(product.Name, product.Category.Name, product.SerialNumber.Number)
+	var categories []Category
+	err = db.Model(&Category{}).Preload("Products").Preload("Products.SerialNumber").Find(&categories).Error
+	if err != nil {
+		panic(err)
+	}
+	//search has many
+	for _, category := range categories {
+		fmt.Println(category.Name, ":")
+		for _, product := range category.Products {
+			fmt.Println("- ", product.Name, "/", category.Name, "Serial Number:", product.SerialNumber.Number)
+		}
 	}
 }
