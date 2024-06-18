@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/4lexRossi/pos-go/9-APIs/internal/dto"
 	"github.com/4lexRossi/pos-go/9-APIs/internal/entity"
@@ -53,6 +54,32 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
+	page := chi.URLParam(r, "page")
+	limit := chi.URLParam(r, "limit")
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 0
+	}
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 0
+	}
+
+	sort := chi.URLParam(r, "sort")
+
+	products, err := h.ProductDB.FindAll(pageInt, limitInt, sort)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(products)
 }
 
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
