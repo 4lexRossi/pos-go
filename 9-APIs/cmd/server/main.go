@@ -28,10 +28,13 @@ func main() {
 	productHandler := handlers.NewProductHandler(productDB)
 
 	userDB := database.NewUser(db)
-	userHandler := handlers.NewUserHandler(userDB, configs.TokenAuth, configs.JwtExpiresIn)
+	userHandler := handlers.NewUserHandler(userDB)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.WithValue("jwt", configs.TokenAuth))
+	r.Use(middleware.WithValue("jwtExpiresIn", configs.JwtExpiresIn))
 
 	r.Route("/products", func(chi.Router) {
 		r.Use(jwtauth.Verifier(configs.TokenAuth))
