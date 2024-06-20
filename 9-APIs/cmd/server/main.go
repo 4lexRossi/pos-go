@@ -4,16 +4,34 @@ import (
 	"net/http"
 
 	"github.com/4lexRossi/pos-go/9-APIs/configs"
+	_ "github.com/4lexRossi/pos-go/9-APIs/docs"
 	"github.com/4lexRossi/pos-go/9-APIs/internal/entity"
 	"github.com/4lexRossi/pos-go/9-APIs/internal/infra/database"
 	"github.com/4lexRossi/pos-go/9-APIs/internal/infra/webservers/handlers"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
+// @title           Go Expert API Example
+// @version         1.0
+// @description     Product API with auhtentication
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   Alex Rossi
+// @contact.url    https://4lexrossi.github.io/
+// @contact.email  devalexrossi@gmail.com
+
+// @license.name   Lex Labs License
+
+// @host      localhost:8000
+// @BasePath  /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	configs, err := configs.LoadConfig(".")
 	if err != nil {
@@ -49,6 +67,8 @@ func main() {
 
 	r.Post("/users", userHandler.CreateUser)
 	r.Post("/users/generate_token", userHandler.GetJWT)
+
+	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8000/docs/doc.json")))
 
 	http.ListenAndServe(":8000", r)
 }
