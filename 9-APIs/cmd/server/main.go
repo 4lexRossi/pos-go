@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/4lexRossi/pos-go/9-APIs/configs"
@@ -54,21 +55,26 @@ func main() {
 	r.Use(middleware.WithValue("jwt", configs.TokenAuth))
 	r.Use(middleware.WithValue("jwtExpiresIn", configs.JwtExpiresIn))
 
-	r.Route("/products", func(chi.Router) {
+	r.Route("/products", func(r chi.Router) {
 		r.Use(jwtauth.Verifier(configs.TokenAuth))
 		r.Use(jwtauth.Authenticator)
-
 		r.Post("/", productHandler.CreateProduct)
 		r.Get("/", productHandler.GetProducts)
 		r.Get("/{id}", productHandler.GetProduct)
 		r.Put("/{id}", productHandler.UpdateProduct)
 		r.Delete("/{id}", productHandler.DeleteProduct)
 	})
-
 	r.Post("/users", userHandler.CreateUser)
 	r.Post("/users/generate_token", userHandler.GetJWT)
 
 	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8000/docs/doc.json")))
 
 	http.ListenAndServe(":8000", r)
+}
+
+func LogRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
 }
