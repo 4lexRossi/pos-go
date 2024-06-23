@@ -4,11 +4,11 @@ import "fmt"
 
 func main() {
 	hello := make(chan string)
-	go receive("Hello", hello)
+	go receiver("Hello", hello)
 	deliver(hello)
 }
 
-func receive(name string, hello chan<- string) {
+func receiver(name string, hello chan<- string) {
 	hello <- name
 }
 
