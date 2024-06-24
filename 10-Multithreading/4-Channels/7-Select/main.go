@@ -40,9 +40,9 @@ func main() {
 		// for i := 0; i < 3; i++ {
 		select {
 		case msg := <-c1:
-			fmt.Printf("received Kafka: %s/n", msg.Msg)
+			fmt.Printf("received Kafka: %s\n", msg.Msg)
 		case msg := <-c2:
-			fmt.Printf("received RabbitMQ: %s/n", msg.Msg)
+			fmt.Printf("received RabbitMQ: %s\n", msg.Msg)
 		case <-time.After(time.Second * 3):
 			println("timeout")
 			// default:
