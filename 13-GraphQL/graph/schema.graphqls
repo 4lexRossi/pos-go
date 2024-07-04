@@ -17,7 +17,7 @@ input NewCategory {
   description: String
 }
 
-type NewCourse {
+input NewCourse {
   name: String!
   description: String
   categoryId: ID!
