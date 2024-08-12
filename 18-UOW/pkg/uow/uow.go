@@ -3,6 +3,8 @@ package uow
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 )
 
 type RepositoryFactory func(tx *sql.Tx) interface{}
@@ -14,4 +16,70 @@ type UowInterface interface {
 	CommitOrRollBack() error
 	RollBack() error
 	UnRegister(name string)
+}
+
+type Uow struct {
+	Db           *sql.DB
+	Tx           *sql.Tx
+	Repositories map[string]RepositoryFactory
+}
+
+func NewUow(ctx context.Context, db *sql.DB) *Uow {
+	return &Uow{
+		Db:           db,
+		Repositories: make(map[string]RepositoryFactory),
+	}
+}
+
+func (u *Uow) Register(name string, fc RepositoryFactory) {
+	u.Repositories[name] = fc
+}
+
+func (u *Uow) UnRegister(name string, fc RepositoryFactory) {
+	delete(u.Repositories, name)
+}
+
+func (u *Uow) Do(ctx context.Context, fn func(Uow *Uow) error) error {
+	if u.Tx != nil {
+		return fmt.Errorf("Transaction already started")
+	}
+	tx, err := u.Db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	u.Tx = tx
+	err = fn(u)
+	if err != nil {
+		errRb := u.Rollback()
+		if errRb != nil {
+			return errors.New(fmt.Sprintf("Original error: %s, rollback error: %s", err.Error(), errRb.Error()))
+		}
+		return err
+	}
+	return nil
+}
+
+func (u *Uow) Rollback() error {
+	if u.Tx == nil {
+		return errors.New("No transaction to rollback")
+	}
+	err := u.Tx.Rollback()
+	if err != nil {
+		return err
+	}
+	u.Tx = nil
+	return nil
+}
+
+func (u *Uow) CommitOrRollBack() error {
+	err := u.Tx.Commit()
+	if err != nil {
+		errRb := u.Rollback()
+		if errRb != nil {
+			return errors.New(fmt.Sprintf("Original error: %s, rollback error: %s", err.Error(), errRb.Error()))
+		}
+		return err
+	}
+	u.Tx = nil
+	return nil
 }
