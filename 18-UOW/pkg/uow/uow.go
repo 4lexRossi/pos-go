@@ -12,9 +12,9 @@ type RepositoryFactory func(tx *sql.Tx) interface{}
 type UowInterface interface {
 	Register(name string, fc RepositoryFactory)
 	GetRepository(ctx context.Context, name string) (interface{}, error)
-	Do(ctx context.Context, fn func(uow UowInterface) error) error
-	CommitOrRollBack() error
-	RollBack() error
+	Do(ctx context.Context, fn func(uow *Uow) error) error
+	CommitOrRollback() error
+	Rollback() error
 	UnRegister(name string)
 }
 
@@ -35,7 +35,7 @@ func (u *Uow) Register(name string, fc RepositoryFactory) {
 	u.Repositories[name] = fc
 }
 
-func (u *Uow) UnRegister(name string, fc RepositoryFactory) {
+func (u *Uow) UnRegister(name string) {
 	delete(u.Repositories, name)
 }
 
@@ -53,7 +53,7 @@ func (u *Uow) GetRepository(ctx context.Context, name string) (interface{}, erro
 
 func (u *Uow) Do(ctx context.Context, fn func(Uow *Uow) error) error {
 	if u.Tx != nil {
-		return fmt.Errorf("Transaction already started")
+		return fmt.Errorf("transaction already started")
 	}
 	tx, err := u.Db.BeginTx(ctx, nil)
 	if err != nil {
@@ -64,16 +64,16 @@ func (u *Uow) Do(ctx context.Context, fn func(Uow *Uow) error) error {
 	if err != nil {
 		errRb := u.Rollback()
 		if errRb != nil {
-			return errors.New(fmt.Sprintf("Original error: %s, rollback error: %s", err.Error(), errRb.Error()))
+			return errors.New(fmt.Sprintf("original error: %s, rollback error: %s", err.Error(), errRb.Error()))
 		}
 		return err
 	}
-	return nil
+	return u.CommitOrRollback()
 }
 
 func (u *Uow) Rollback() error {
 	if u.Tx == nil {
-		return errors.New("No transaction to rollback")
+		return errors.New("no transaction to rollback")
 	}
 	err := u.Tx.Rollback()
 	if err != nil {
@@ -83,12 +83,12 @@ func (u *Uow) Rollback() error {
 	return nil
 }
 
-func (u *Uow) CommitOrRollBack() error {
+func (u *Uow) CommitOrRollback() error {
 	err := u.Tx.Commit()
 	if err != nil {
 		errRb := u.Rollback()
 		if errRb != nil {
-			return errors.New(fmt.Sprintf("Original error: %s, rollback error: %s", err.Error(), errRb.Error()))
+			return errors.New(fmt.Sprintf("original error: %s, rollback error: %s", err.Error(), errRb.Error()))
 		}
 		return err
 	}
