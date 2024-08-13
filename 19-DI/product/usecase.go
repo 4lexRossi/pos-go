@@ -1,14 +1,14 @@
 package product
 
 type ProductUseCase struct {
-	repository *ProductRepository
+	repository ProductRepositoryInterface
 }
 
-func NewProductUseCase(repository *ProductRepository) *ProductUseCase {
+func NewProductUseCase(repository ProductRepositoryInterface) *ProductUseCase {
 	return &ProductUseCase{repository}
 }
 
-// on real example shoud create a DTO, this is just for example purposes
+// On real example shoud create a DTO, this is just for example purposes
 func (u *ProductUseCase) GetProduct(id int) (Product, error) {
 	return u.repository.GetProduct(id)
 }
